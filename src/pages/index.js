@@ -4,6 +4,7 @@ import { authOptions } from "./api/auth/[...nextauth]";
 import Head from "next/head";
 import Login from "@/components/login";
 import Hero from "@/components/Hero";
+import Navbar from "@/components/Navbar";
 import requests from "@/utils/requests";
 import Row from "@/components/Row";
 import TVShowsRow from '@/components/TVShowsRow';
@@ -44,6 +45,7 @@ export default function Home({
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
       <main className="relative bg-gradient-to-b from-gray-900/10 to-[#000000]">
+        <Navbar />
         <Hero moviePosters={moviePosters} />
         <section className="container pb-32">
           {/* Movies Section */}
