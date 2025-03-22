@@ -3,7 +3,6 @@ import { useSession } from "next-auth/react";
 import { authOptions } from "./api/auth/[...nextauth]";
 import Head from "next/head";
 import Login from "@/components/login";
-import styles from "@/styles/globals.css"
 import Hero from "@/components/Hero";
 import requests from "@/utils/requests";
 import Row from "@/components/Row";
