@@ -5,7 +5,6 @@ import Image from 'next/image'
 import { FaPlay } from 'react-icons/fa'
 import { InformationCircleIcon } from '@heroicons/react/24/outline'
 import ReactPlayer from 'react-player'
-import '../styles/animations.css'
 
 function Hero({moviePosters}) {
    const[movie,setMovie] = useState(null)
