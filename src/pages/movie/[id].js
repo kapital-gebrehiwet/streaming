@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSession, getSession } from 'next-auth/react';
-import Login from '@/components/login'; // Adjust the import path as per your project structure
-import MovieDetail from '@/components/MovieDetail'; // Adjust the import path as per your project structure
+import Login from '@/components/login';
+import MovieDetail from '@/components/MovieDetail';
 
 function MovieDetailPage({ movie }) {
     const { data: session } = useSession();
@@ -57,7 +57,7 @@ function MovieDetailPage({ movie }) {
 
 export async function getServerSideProps(context) {
     const session = await getSession(context);
-    const { id } = context.query; // Destructure to get the id
+    const { id } = context.query;
 
     try {
         const request = await fetch(
@@ -83,4 +83,4 @@ export async function getServerSideProps(context) {
     }
 }
 
-export default MovieDetailPage;
+export default MovieDetailPage; 

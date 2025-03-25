@@ -88,18 +88,19 @@ const Navbar = () => {
         tvShowsResponse.json()
       ]);
 
+      // Process and combine results
       const combinedResults = [
         ...moviesData.results.map(movie => ({
           ...movie,
-          media_type: 'movie',
           title: movie.title,
-          year: movie.release_date?.split('-')[0] || 'N/A'
+          year: movie.release_date?.split('-')[0] || 'N/A',
+          type: 'movie'
         })),
         ...tvShowsData.results.map(show => ({
           ...show,
-          media_type: 'tv',
           title: show.name,
-          year: show.first_air_date?.split('-')[0] || 'N/A'
+          year: show.first_air_date?.split('-')[0] || 'N/A',
+          type: 'tv'
         }))
       ]
       .sort((a, b) => b.popularity - a.popularity)
@@ -129,7 +130,13 @@ const Navbar = () => {
     setShowSearch(false);
     setSearchResults([]);
     setSearchTerm('');
-    router.push(`/${result.media_type}/${result.id}`);
+    
+    // Determine if it's a movie or TV show based on the presence of title or name
+    const isMovie = !!result.title;
+    const mediaType = isMovie ? 'movie' : 'tv';
+    
+    // Navigate to the correct detail page
+    router.push(`/${mediaType}/${result.id}`);
   };
 
   const handleMarkAsRead = (notificationId) => {
@@ -206,7 +213,7 @@ const Navbar = () => {
               <div className="absolute top-full mt-2 w-96 bg-black/95 rounded-md shadow-lg overflow-hidden z-50">
                 {searchResults.map((result) => (
                   <div
-                    key={`${result.media_type}-${result.id}`}
+                    key={`${result.type}-${result.id}`}
                     className="flex items-center p-3 hover:bg-gray-800 cursor-pointer transition-colors"
                     onClick={() => handleResultClick(result)}
                   >
@@ -222,7 +229,7 @@ const Navbar = () => {
                     <div className="ml-3 flex-grow">
                       <h4 className="text-white text-sm font-medium">{result.title}</h4>
                       <p className="text-gray-400 text-xs">
-                        {result.media_type === 'movie' ? 'Movie' : 'TV Show'} • {result.year}
+                        {result.type === 'movie' ? 'Movie' : 'TV Show'} • {result.year}
                       </p>
                     </div>
                   </div>
