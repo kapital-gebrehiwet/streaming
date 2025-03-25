@@ -5,22 +5,42 @@ import Image from 'next/image'
 import { FaPlay } from 'react-icons/fa'
 import { InformationCircleIcon } from '@heroicons/react/24/outline'
 import ReactPlayer from 'react-player'
+import { AiOutlineClose } from 'react-icons/ai'
 
 function Hero({moviePosters}) {
    const[movie,setMovie] = useState(null)
    const[showPlayer,setShowPlayer] = useState(false)
-   const[trailer,setTrailer] = useState(null)
+   const[trailerURL,setTrailerURL] = useState(null)
+   const[hasTrailer,setHasTrailer] = useState(false)
    useEffect(()=>{
     if (moviePosters && moviePosters.length > 0) {
       const mov = moviePosters[Math.floor(Math.random()*moviePosters.length)];
       fetch(`https://api.themoviedb.org/3/movie/${mov.id}?api_key=${process.env.NEXT_PUBLIC_API_KEY}&language=en-US&append_to_response=videos`)
         .then((res) => res.json())
         .then((data) => {
-          const trailerIndex = data.videos?.results?.findIndex(
-            (element) => element.type === "Trailer"
+          // Try to find an official trailer first
+          let trailerVideo = data.videos?.results?.find(
+            (video) => video.type === "Trailer" && video.official === true
           );
-          const trailerURL = `https://www.youtube.com/watch?v=${data.videos?.results[trailerIndex]?.key}`;
-          setTrailer(trailerURL);
+
+          // If no official trailer, try to find any trailer
+          if (!trailerVideo) {
+            trailerVideo = data.videos?.results?.find(
+              (video) => video.type === "Trailer"
+            );
+          }
+
+          // If still no trailer, try to find any video
+          if (!trailerVideo) {
+            trailerVideo = data.videos?.results?.[0];
+          }
+
+          if (trailerVideo) {
+            setTrailerURL(`https://www.youtube.com/watch?v=${trailerVideo.key}`);
+            setHasTrailer(true);
+          } else {
+            setHasTrailer(false);
+          }
           setMovie(data);
         });
     }
@@ -64,13 +84,15 @@ function Hero({moviePosters}) {
 
           {/* Buttons */}
           <div className="hero-buttons flex flex-wrap gap-3">
-            <button
-              onClick={() => setShowPlayer(true)}
-              className="flex items-center gap-2 bg-white text-black px-5 py-2.5 rounded hover:bg-gray-300 transition duration-200"
-            >
-              <FaPlay className="h-4 w-4" />
-              <span>Play Trailer</span>
-            </button>
+            {hasTrailer && (
+              <button
+                onClick={() => setShowPlayer(true)}
+                className="flex items-center gap-2 bg-white text-black px-5 py-2.5 rounded hover:bg-gray-300 transition duration-200"
+              >
+                <FaPlay className="h-4 w-4" />
+                <span>Play Trailer</span>
+              </button>
+            )}
             <button className="flex items-center gap-2 bg-gray-600/80 text-white px-5 py-2.5 rounded hover:bg-gray-700 transition duration-200">
               <InformationCircleIcon className="h-5 w-5" />
               <span>More Info</span>
@@ -80,21 +102,26 @@ function Hero({moviePosters}) {
       </div>
 
       {/* Trailer Modal */}
-      {showPlayer && (
+      {showPlayer && hasTrailer && trailerURL && (
         <div className="fixed inset-0 bg-black bg-opacity-70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="relative w-full max-w-5xl aspect-video">
             <button
               onClick={() => setShowPlayer(false)}
-              className="absolute -top-8 right-0 text-white hover:text-gray-300"
+              className="absolute -top-10 right-0 text-white hover:text-gray-300 transition duration-200"
             >
-              Close
+              <AiOutlineClose className="h-8 w-8" />
             </button>
             <ReactPlayer
-              url={trailer}
+              url={trailerURL}
               width="100%"
               height="100%"
               controls
               playing
+              config={{
+                youtube: {
+                  playerVars: { showinfo: 1 }
+                }
+              }}
             />
           </div>
         </div>

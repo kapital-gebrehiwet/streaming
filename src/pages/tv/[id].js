@@ -9,13 +9,33 @@ function TVShowDetail({ show }) {
   const router = useRouter();
   const [showPlayer, setShowPlayer] = useState(false);
   const [trailer, setTrailer] = useState("");
+  const [hasTrailer, setHasTrailer] = useState(false);
 
   useEffect(() => {
     if (show?.videos?.results) {
-      const trailerVideo = show.videos.results.find(
-        (video) => video.type === "Trailer"
+      // Try to find an official trailer first
+      let trailerVideo = show.videos.results.find(
+        (video) => video.type === "Trailer" && video.official === true
       );
-      setTrailer(trailerVideo ? trailerVideo.key : "");
+
+      // If no official trailer, try to find any trailer
+      if (!trailerVideo) {
+        trailerVideo = show.videos.results.find(
+          (video) => video.type === "Trailer"
+        );
+      }
+
+      // If still no trailer, try to find any video
+      if (!trailerVideo) {
+        trailerVideo = show.videos.results[0];
+      }
+
+      if (trailerVideo) {
+        setTrailer(trailerVideo.key);
+        setHasTrailer(true);
+      } else {
+        setHasTrailer(false);
+      }
     }
   }, [show]);
 
@@ -54,13 +74,15 @@ function TVShowDetail({ show }) {
           <h1 className="text-4xl font-bold text-white md:text-6xl">{show?.name}</h1>
           
           <div className="mt-4 flex items-center space-x-4">
-            <button
-              className="flex items-center space-x-2 rounded bg-white px-6 py-2 text-black transition hover:bg-gray-300"
-              onClick={() => setShowPlayer(true)}
-            >
-              <FaPlay className="h-4 w-4" />
-              <span>Play Trailer</span>
-            </button>
+            {hasTrailer && (
+              <button
+                className="flex items-center space-x-2 rounded bg-white px-6 py-2 text-black transition hover:bg-gray-300"
+                onClick={() => setShowPlayer(true)}
+              >
+                <FaPlay className="h-4 w-4" />
+                <span>Play Trailer</span>
+              </button>
+            )}
             
             <div className="flex items-center space-x-2">
               <FaStar className="h-5 w-5 text-yellow-400" />
@@ -81,11 +103,11 @@ function TVShowDetail({ show }) {
       </div>
 
       {/* Trailer Modal */}
-      {showPlayer && trailer && (
+      {showPlayer && hasTrailer && trailer && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
           <div className="relative aspect-video w-full max-w-5xl">
             <button
-              className="absolute -top-10 right-0 text-white"
+              className="absolute -top-10 right-0 text-white hover:text-gray-300"
               onClick={() => setShowPlayer(false)}
             >
               Close
@@ -95,6 +117,7 @@ function TVShowDetail({ show }) {
               width="100%"
               height="100%"
               controls
+              playing
             />
           </div>
         </div>
@@ -111,6 +134,12 @@ export async function getServerSideProps(context) {
       `https://api.themoviedb.org/3/tv/${id}?api_key=${process.env.NEXT_PUBLIC_API_KEY}&language=en-US&append_to_response=videos`
     );
     const show = await response.json();
+
+    if (!show || show.success === false) {
+      return {
+        notFound: true,
+      };
+    }
 
     return {
       props: {
